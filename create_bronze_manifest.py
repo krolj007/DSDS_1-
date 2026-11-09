@@ -1,4 +1,4 @@
-
+import geopandas as gpd
 import csv
 import hashlib
 import json
@@ -101,6 +101,29 @@ for path in sorted(LABEL_DIR.glob("page_*.json")):
 
 
 # ===== 5. AWS 기상자료 파일 =====
+
+# 서울시 침수흔적도 SHP
+SEOUL_DIR = Path("data/bronze/labels")
+SEOUL_SOURCE = "https://data.seoul.go.kr/dataList/OA-15636/F/1/datasetView.do"
+
+for year in (2022, 2023, 2024):
+    files = sorted((SEOUL_DIR / str(year)).rglob("*.shp"))
+    if len(files) != 1:
+        raise SystemExit(f"서울시 {year}년 폴더에서 SHP 파일을 {len(files)}개 찾았어.")
+
+    path = files[0]
+    count = len(gpd.read_file(path))
+
+    entries.append(make_entry(
+        path,
+        "seoul_flood_trace",
+        "서울특별시",
+        SEOUL_SOURCE,
+        count,
+        artifact_type="downloaded_shapefile",
+        status="parsed",
+    ))
+    print(f"서울시 침수흔적도 {year}년: {count:,}행")
 
 weather_files = list(sorted(WEATHER_DIR.glob("aws_*.json")))
 
